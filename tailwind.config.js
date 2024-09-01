@@ -13,7 +13,12 @@ module.exports = {
         dialogButtonColor: '#d9d4cc3b',
         createButtonHoverColor: '#393634',
         dialogButtonDisabled: '#BBB5AE',
-        darkHoverColor: '#393634'
+        darkHoverColor: '#393634',
+        uploadPanelBg: '#1A1918',
+        uploadPanelSecondary: '#BBB5AE',
+        uploadPanelBtnHover: '#313030',
+        darkPillBtnHover: '#464545',
+        darkPillBtnBg: '#313030'
       },
       fontFamily: {
         text: ['Poppins', 'Arial', 'sans-serif'],

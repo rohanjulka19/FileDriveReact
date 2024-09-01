@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import SearchBar from "../components/SearchBar"
 import { Upload, ArrowDownToLine, FolderPlus, Trash} from 'lucide-react';
 import MainButton from "../components/MainButton";
@@ -10,6 +10,7 @@ import Sidebar from "../components/sidebar";
 import DropboxTable from "../components/FileView";
 import CreateFolderDialog from "../components/CreateFolderDialog";
 import RectanglePillButton from "../components/RectanglePillButton";
+import UploadPanel from "../components/UploadPanel"
 import FileAPI from "../api/FileAPI";
 
 export default function Main() {
@@ -18,10 +19,15 @@ export default function Main() {
     const [data, setData] = useState([])
     const [selectedItems, setSelectedItems] = useState(new Set());
     const [isChecked, setIsChecked] = useState(false)
+    const [showFileBrowser, setShowFileBrowser] = useState(false)
+    const fileInputRef = useRef(null)
+    const handleItemUpload = (e) => {
+        const files = e.target.files
+
+    }
 
     useEffect(() => {
         FileAPI.getItems().then((docs) => {
-          console.log("DOCS - ", docs)
           const transformedData = docs.map((doc) => {
               return {
                 id:doc.id,
@@ -64,12 +70,14 @@ export default function Main() {
                 <MainButton 
                     icon={Upload} 
                     text="Upload or drop" 
+                    onClick={() => fileInputRef.current.click()}
                 />
                 <MainButton 
                     icon={FolderPlus} 
                     text="Create folder" 
                     onClick={() => { setIsFileDialogOpened(true)}}
                 />
+                <input ref={fileInputRef} onChange={handleItemUpload} type="file" hidden></input>
             </div>
         </div>
         <div className="flex flex-col gap-y-4">
@@ -93,6 +101,7 @@ export default function Main() {
 
             </div>
             <DropboxTable data={data} onCheckboxToggle={handleCheckboxToggle}/>
+            <UploadPanel/>
         </div>
     </div>
     <CreateFolderDialog isOpen={isFileDialogOpened} setIsOpen={setIsFileDialogOpened}/>

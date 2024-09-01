@@ -1,7 +1,10 @@
-function PillButton({label, icon}) {
+function PillButton({label, icon, dark}) {
     return (
-        <div className="rounded-full flex flex-row cursor-pointer items-center gap-1 bg-sidebar hover:bg-hoverColor px-3 py-1 text-sm">
-            <div className="w-4 h-4">{icon}</div> 
+        <div className={`rounded-full flex flex-row cursor-pointer items-center gap-1 px-3 py-1
+            ${dark ? 
+                'bg-darkPillBtnBg hover:bg-darkPillBtnHover text-white'
+                :'bg-sidebar hover:bg-hoverColor'} `}>
+            {icon ? <div className="w-4 h-4">{icon}</div>: "" }
             <div>{label}</div>
         </div>
     )

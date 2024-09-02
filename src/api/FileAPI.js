@@ -51,9 +51,21 @@ const FileAPI = {
 
         const data = await resp.json()
         return data;
+    },
+
+    async deleteItem(itemId) {
+        const resp = await fetch(`${apiBaseUrl}/files/items/${itemId}`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json", 
+              "X-CSRFToken": csrftoken,
+            },
+            credentials: 'include'
+          });
+
+        const data = await resp.json()
+        return data;
     }
-
-
 }
 
 

@@ -28,6 +28,16 @@ export default function Main() {
     const [showPanel, setShowPanel] = useState(false)
     const [openPanel, setOpenPanel] = useState(false)
 
+    const formatSize = (size) => {
+        const units = ['bytes', 'KB', 'MB', 'GB', 'TB']
+        let unitType = 0
+        while (size > 1000) {
+            size = size / 1024
+            unitType += 1
+        }
+        return `${size ? size.toFixed(2): 0} ${units[unitType]}`
+    }
+
     const updateFileRequestStatus = (uploadId, status) => {
         const newFileUploadQueue = fileUploadQueueRef.current.map((fileUploadRequest) => {
             if (fileUploadRequest.uploadId === uploadId) {
@@ -55,7 +65,7 @@ export default function Main() {
                     const updatedData = [...data, {
                         id: doc.id,
                         name: doc.name,
-                        size: doc.size,
+                        size: formatSize(doc.size),
                         type: "file",
                         access: 'Only you',
                         size: '71.48 KB',
@@ -107,7 +117,7 @@ export default function Main() {
                 id:doc.id,
                 name: doc.name,
                 access: 'Only you',
-                size: doc.size,
+                size: formatSize(doc.size),
                 modified: '27/3/2016 9:36 am',
                 type: doc.is_dir ? "folder": "file"
               }

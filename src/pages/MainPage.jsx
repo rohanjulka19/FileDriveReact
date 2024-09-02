@@ -1,4 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
+
+import { v4 as uuidv4 } from 'uuid';
+import JSZip, { folder } from "jszip"
+import { saveAs } from 'file-saver';
+
 import SearchBar from "../components/SearchBar"
 import { Upload, ArrowDownToLine, FolderPlus, Trash} from 'lucide-react';
 import MainButton from "../components/MainButton";
@@ -12,15 +17,12 @@ import CreateFolderDialog from "../components/CreateFolderDialog";
 import RectanglePillButton from "../components/RectanglePillButton";
 import UploadPanel from "../components/UploadPanel"
 import FileAPI from "../api/FileAPI";
-import { v4 as uuidv4 } from 'uuid';
 
 export default function Main() {
     let [isFileDialogOpened, setIsFileDialogOpened] = React.useState(false)
     ModuleRegistry.registerModules([AllCommunityModule]);
     const [data, setData] = useState([])
-    const [selectedItems, setSelectedItems] = useState(new Set());
-    const [isChecked, setIsChecked] = useState(false)
-    const [showFileBrowser, setShowFileBrowser] = useState(false)
+    const [selectedItems, setSelectedItems] = useState([]);
     const fileInputRef = useRef(null)
     const [fileUploadQueue, setFileUploadQueue] = useState([])
     const fileUploadQueueRef = useRef([])
@@ -36,6 +38,86 @@ export default function Main() {
             unitType += 1
         }
         return `${size ? size.toFixed(2): 0} ${units[unitType]}`
+    }
+
+    const handleItemClick = async (item) => {
+        if (item.type == "folder") {
+            const items = await FileAPI.getItems(item.id)
+            const transformedData = items.map((doc) => {
+                return {
+                  id:doc.id,
+                  name: doc.name,
+                  access: 'Only you',
+                  size: formatSize(doc.size),
+                  modified: '27/3/2016 9:36 am',
+                  type: doc.is_dir ? "folder": "file"
+                }
+            })
+            setData(transformedData)
+            parentIdRef.current = item.id
+        } else {
+
+        }
+    }
+
+    const createFolder = (folderName) => {
+        FileAPI.createItem(folderName, true, null, parentIdRef.current, 0)
+        .then((doc) => {
+            const updatedData = [...data, {
+                id: doc.id,
+                name: doc.name,
+                size: formatSize(doc.size),
+                type: "folder",
+                access: 'Only you',
+                modified: '27/3/2016 9:36 am',
+            }]
+            setData(updatedData)
+        })
+    }
+
+    const createZipFileForItems = async (parentName, items, zip) => {
+        for (let item of items) {
+            if (item.type === "folder" || item.is_dir) {
+                console.log(parentName)
+                zip.folder(`${parentName}/${item.name}`)
+                const folderItems = await FileAPI.getItems(item.id)
+                await createZipFileForItems(`${parentName}/${item.name}`, folderItems, zip)
+            } else {
+                const fileData = await downloadSingleFile(item)
+                zip.file(`${parentName}/${item.name}`, fileData)
+            }
+        }
+        return zip
+    }
+
+    const downloadSingleFile = async (file) => {
+        const resp = await FileAPI.getDownloadUrl(file.id)
+        let fileData =   await fetch(resp.download_url)
+        fileData = await fileData.blob()
+        return fileData 
+    }
+
+    const downloadSelectedItems = () => {
+        const ROOT_FOLDER_NAME = "filedrive-data"
+        if (selectedItems.length > 1 || selectedItems[0].type == "folder") {
+            let zipFile = JSZip()
+            createZipFileForItems(ROOT_FOLDER_NAME, selectedItems, zipFile)
+            .then((zip) => {
+                zip.generateAsync({ type:"blob" })
+                .then(function (content) {
+                    saveAs(content, `${ROOT_FOLDER_NAME}.zip`);
+                });
+            })
+        } else {
+            downloadSingleFile(selectedItems[0])
+            .then((content) => {
+                saveAs(content, selectedItems[0].name)
+            })
+        } 
+    }
+
+    const deleteSelectedItems = () => {
+
     }
 
     const updateFileRequestStatus = (uploadId, status) => {
@@ -56,6 +138,7 @@ export default function Main() {
         setShowPanel(true)
         for (let file of files) {
            uploadFile(file, curParentId).then((fileUploadRequest) => {
+                console.log(fileUploadRequest)
                 FileAPI.createItem(fileUploadRequest.file.name, 
                     false,
                     fileUploadRequest.objectKey,
@@ -68,7 +151,6 @@ export default function Main() {
                         size: formatSize(doc.size),
                         type: "file",
                         access: 'Only you',
-                        size: '71.48 KB',
                         modified: '27/3/2016 9:36 am',
                     }]
                     setData(updatedData)
@@ -126,17 +208,11 @@ export default function Main() {
         })
       }, [])
   
-    const handleCheckboxToggle = (id, checked) => {
+    const handleCheckboxToggle = (row, checked) => {
         setSelectedItems((prevSelected) => {
-          const newSelected = new Set(prevSelected);
-          if (checked) {
-            newSelected.add(id);
-          } else {
-            newSelected.delete(id);
-          }
-          return newSelected;
-        });
-        console.log(selectedItems, selectedItems.size)
+            console.log(prevSelected)
+            return checked ? [...prevSelected, row] : prevSelected.filter((cur) => cur.id !== row.id)
+        })
     };
       
     return (
@@ -166,14 +242,14 @@ export default function Main() {
         </div>
         <div className="flex flex-col gap-y-4">
             <div className="flex flex-row justify-between items-end ">
-                    <span className="text-2xl">All Files</span>
+                    <span className="text-2xl font-medium">All files</span>
                     <button className=" p-2 rounded-xl bg-red-600"> RJ </button>
             </div>
             <div className="flex flex-row gap-2">
-                {selectedItems.size > 0 ? (
+                {selectedItems.length > 0 ? (
                     <>
-                        <RectanglePillButton label="Download" dark={true} icon={<ArrowDownToLine width={15} height={15}/>}/>
-                        <RectanglePillButton label="Delete" icon={<Trash width={15} height={15}/>}/>
+                        <RectanglePillButton label="Download" dark={true} onClick={downloadSelectedItems} icon={<ArrowDownToLine width={15} height={15}/>}/>
+                        <RectanglePillButton label="Delete" onClick={deleteSelectedItems} icon={<Trash width={15} height={15}/>}/>
                         
                     </>
                     ): (
@@ -184,11 +260,15 @@ export default function Main() {
                 )}
 
             </div>
-            <DropboxTable data={data} onCheckboxToggle={handleCheckboxToggle}/>
-            <UploadPanel show={showPanel} setShowPanel={setShowPanel} setOpenPanel={setOpenPanel} openPanel={openPanel} fileUploadRequests={fileUploadQueue} />
+            <DropboxTable data={data} onCheckboxToggle={handleCheckboxToggle} onItemClick={handleItemClick}/>
+            <UploadPanel show={showPanel} 
+            setShowPanel={setShowPanel} 
+            setOpenPanel={setOpenPanel} 
+            openPanel={openPanel} 
+            fileUploadRequests={fileUploadQueue} />
         </div>
     </div>
-    <CreateFolderDialog isOpen={isFileDialogOpened} setIsOpen={setIsFileDialogOpened}/>
+    <CreateFolderDialog isOpen={isFileDialogOpened} setIsOpen={setIsFileDialogOpened} onClick={createFolder}/>
 </div>
     )
 }

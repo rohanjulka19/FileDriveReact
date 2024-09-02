@@ -1,10 +1,13 @@
 import { Dialog, DialogPanel, DialogTitle, DialogBackdrop } from '@headlessui/react'
 import { Folder, X } from 'lucide-react';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useRef} from 'react';
 
-const CreateFolderDialog = ({ isOpen, setIsOpen, onClose = () => {}, onCreate }) => {
+const CreateFolderDialog = ({ isOpen, setIsOpen, onClose = () => {}, onClick }) => {
   const [folderName, setFolderName] = useState('');
   const [isValid, setIsValid] = useState(false);
+
+  const folderInputRef = useRef()
+
   const validateFolderName = (name) => {
     setFolderName(name);
     setIsValid(name.trim() !== '');
@@ -35,7 +38,6 @@ const CreateFolderDialog = ({ isOpen, setIsOpen, onClose = () => {}, onCreate })
       <hr></hr>
     </DialogTitle>
     <div className="px-4 space-y-6 mt-5 mr-1.5">
-        {/* Name Input */}
         <div className="space-y-1.5">
           <label 
             htmlFor="folderName" 
@@ -47,6 +49,7 @@ const CreateFolderDialog = ({ isOpen, setIsOpen, onClose = () => {}, onCreate })
             id="folderName"
             type="text"
             value={folderName}
+            ref={folderInputRef}
             onChange={(e) => {validateFolderName(e.target.value)}}
             placeholder="Folder name"
             className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
@@ -69,6 +72,7 @@ const CreateFolderDialog = ({ isOpen, setIsOpen, onClose = () => {}, onCreate })
                 ? 'bg-black hover:bg-gray-800'
                 : 'bg-dialogButtonDisabled'
             }`}
+            onClick={() => onClick && onClick(folderInputRef.current.value)}
           >
             Create
           </button>

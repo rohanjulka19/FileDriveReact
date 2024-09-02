@@ -15,7 +15,7 @@ function UploadPanel({show, setShowPanel, openPanel, setOpenPanel, fileUploadReq
       }
   }
 
-  if (openPanel) {
+  if (openPanel && panelBtn.currentl) {
       panelBtn.current.setAttribute('data-open', true)
   }
 

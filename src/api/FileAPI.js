@@ -5,7 +5,7 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
 
 const FileAPI = {
     async getItems(parent_id) {
-        const resp = await fetch(`${apiBaseUrl}/files/items/`, {
+        const resp = await fetch(`${apiBaseUrl}/files/items${parent_id ? `?parent=${parent_id}`: ''}`, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
@@ -56,6 +56,37 @@ const FileAPI = {
     async deleteItem(itemId) {
         const resp = await fetch(`${apiBaseUrl}/files/items/${itemId}`, {
             method: "DELETE",
+            headers: {
+              "Content-Type": "application/json", 
+              "X-CSRFToken": csrftoken,
+            },
+            credentials: 'include'
+          });
+
+        const data = await resp.json()
+        return data;
+    },
+
+    async updateItem(itemId, itemName) {
+        const resp = await fetch(`${apiBaseUrl}/files/items/`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json", 
+              "X-CSRFToken": csrftoken,
+            },
+            body: JSON.stringify({
+                "name": itemName,
+            }),
+            credentials: 'include'
+          });
+
+        const data = await resp.json()
+        return data;
+    },
+
+    async getDownloadUrl(itemId) {
+        const resp = await fetch(`${apiBaseUrl}/files/items/${itemId}/download-url`, {
+            method: "GET",
             headers: {
               "Content-Type": "application/json", 
               "X-CSRFToken": csrftoken,

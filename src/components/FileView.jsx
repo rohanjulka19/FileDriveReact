@@ -8,6 +8,7 @@ import {
 } from '@tanstack/react-table';
 import { ChevronUp, ChevronDown, Star, Folder, FileText, File } from 'lucide-react';
 import BigCheckbox from './BigCheckbox';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import FileAPI from '../api/FileAPI'
 
 const FileIcon = ({ type }) => {
@@ -49,6 +50,13 @@ const columns = [
   }),
 ];
 
+// const rowVirtualizer = useVirtualizer({
+//   count: 10000,
+//   getScrollElement: () => parentRef.current,
+//   estimateSize: () => 35,
+// })
+
+
 export default function DropboxTable({data, onCheckboxToggle}) {
   const [sorting, setSorting] = React.useState([]);
   const table = useReactTable({
@@ -63,7 +71,7 @@ export default function DropboxTable({data, onCheckboxToggle}) {
   });
 
   return (
-    <div className="w-full py-4">
+    <div className="w-full py-4 overflow-scroll h-[50vh]">
       <table className="min-w-full">
         <thead>
           {table.getHeaderGroups().map(headerGroup => (

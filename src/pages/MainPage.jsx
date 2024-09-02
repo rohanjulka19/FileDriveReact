@@ -12,6 +12,7 @@ import CreateFolderDialog from "../components/CreateFolderDialog";
 import RectanglePillButton from "../components/RectanglePillButton";
 import UploadPanel from "../components/UploadPanel"
 import FileAPI from "../api/FileAPI";
+import { v4 as uuidv4 } from 'uuid';
 
 export default function Main() {
     let [isFileDialogOpened, setIsFileDialogOpened] = React.useState(false)
@@ -21,9 +22,82 @@ export default function Main() {
     const [isChecked, setIsChecked] = useState(false)
     const [showFileBrowser, setShowFileBrowser] = useState(false)
     const fileInputRef = useRef(null)
+    const [fileUploadQueue, setFileUploadQueue] = useState([])
+    const fileUploadQueueRef = useRef([])
+    const parentIdRef = useRef()
+    const [showPanel, setShowPanel] = useState(false)
+    const [openPanel, setOpenPanel] = useState(false)
+
+    const updateFileRequestStatus = (uploadId, status) => {
+        const newFileUploadQueue = fileUploadQueueRef.current.map((fileUploadRequest) => {
+            if (fileUploadRequest.uploadId === uploadId) {
+                fileUploadRequest.status = status
+            }
+            return fileUploadRequest
+        })
+        setFileUploadQueue(newFileUploadQueue)
+        fileUploadQueueRef.current = newFileUploadQueue
+    }
+ 
     const handleItemUpload = (e) => {
         const files = e.target.files
+        const curParentId = parentIdRef.current
+        setOpenPanel(true)
+        setShowPanel(true)
+        for (let file of files) {
+           uploadFile(file, curParentId).then((fileUploadRequest) => {
+                FileAPI.createItem(fileUploadRequest.file.name, 
+                    false,
+                    fileUploadRequest.objectKey,
+                    fileUploadRequest.parent,
+                    fileUploadRequest.file.size
+                ).then((doc) => {
+                    const updatedData = [...data, {
+                        id: doc.id,
+                        name: doc.name,
+                        size: doc.size,
+                        type: "file",
+                        access: 'Only you',
+                        size: '71.48 KB',
+                        modified: '27/3/2016 9:36 am',
+                    }]
+                    setData(updatedData)
+                    updateFileRequestStatus(fileUploadRequest.uploadId, "Completed")
+                })
+           })
+        }
+        fileInputRef.current.value = ""
+    }
 
+    const uploadFile = async (file, parentId) => {
+        const uploadId = uuidv4();
+        let fileUploadRequest = {
+            uploadId: uploadId,
+            file: file,
+            status: "Initiating",
+            parent: parentId
+        }
+        
+        let newFileUploadQueue = [...fileUploadQueueRef.current, fileUploadRequest]
+        setFileUploadQueue(newFileUploadQueue)
+        fileUploadQueueRef.current = newFileUploadQueue
+
+        updateFileRequestStatus(fileUploadRequest.uploadId, "In Progress")
+
+        const uploadMetadata = await FileAPI.getUploadMetadata()
+        fileUploadRequest.objectKey = uploadMetadata.object_key
+
+        const resp = await fetch(uploadMetadata.upload_url, {
+            method: "PUT",
+            body: file,
+            headers: {
+              "Content-Type": "application/octet-stream",
+            },
+        });
+        if (resp.status == 200) {
+            fileUploadRequest.fileId = resp.id
+            return fileUploadRequest
+        }
     }
 
     useEffect(() => {
@@ -33,7 +107,7 @@ export default function Main() {
                 id:doc.id,
                 name: doc.name,
                 access: 'Only you',
-                size: '71.48 KB',
+                size: doc.size,
                 modified: '27/3/2016 9:36 am',
                 type: doc.is_dir ? "folder": "file"
               }
@@ -101,7 +175,7 @@ export default function Main() {
 
             </div>
             <DropboxTable data={data} onCheckboxToggle={handleCheckboxToggle}/>
-            <UploadPanel/>
+            <UploadPanel show={showPanel} setShowPanel={setShowPanel} setOpenPanel={setOpenPanel} openPanel={openPanel} fileUploadRequests={fileUploadQueue} />
         </div>
     </div>
     <CreateFolderDialog isOpen={isFileDialogOpened} setIsOpen={setIsFileDialogOpened}/>

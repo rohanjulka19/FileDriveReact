@@ -18,7 +18,8 @@ module.exports = {
         uploadPanelSecondary: '#BBB5AE',
         uploadPanelBtnHover: '#313030',
         darkPillBtnHover: '#464545',
-        darkPillBtnBg: '#313030'
+        darkPillBtnBg: '#313030',
+        secondary: '#BBB5AE'
       },
       fontFamily: {
         text: ['Poppins', 'Arial', 'sans-serif'],

@@ -67,6 +67,19 @@ const FileAPI = {
         return data;
     },
 
+    async deleteItems(itemIds) {
+        const resp = await fetch(`${apiBaseUrl}/files/items/bulk-delete?ids=${encodeURI(itemIds.join(','))}`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json", 
+              "X-CSRFToken": csrftoken,
+            },
+            credentials: 'include'
+          });
+
+        return resp;
+    },
+
     async updateItem(itemId, itemName) {
         const resp = await fetch(`${apiBaseUrl}/files/items/`, {
             method: "PATCH",

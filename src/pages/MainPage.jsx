@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 
 import { v4 as uuidv4 } from 'uuid';
-import JSZip, { folder } from "jszip"
+import JSZip from "jszip"
 import { saveAs } from 'file-saver';
 
 import SearchBar from "../components/SearchBar"
@@ -116,8 +116,22 @@ export default function Main() {
         } 
     }
 
-    const deleteSelectedItems = () => {
+    const unselectAllItems = () => {
+        setSelectedItems([])
+    }
 
+    const deleteSelectedItems = async () => {
+        let resp = await FileAPI.deleteItems(selectedItems.map(item => item.id))
+        let selectedItemsSet = new Set()
+        for (let item of selectedItems) {
+            selectedItemsSet.add(item.id)
+        }
+        if (resp.status == 200) {
+            setData((oldData) => {
+                return oldData.filter((item) => !selectedItemsSet.has(item.id))
+            })
+            unselectAllItems()
+        }
     }
 
     const updateFileRequestStatus = (uploadId, status) => {

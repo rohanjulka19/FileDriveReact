@@ -17,6 +17,8 @@ import CreateFolderDialog from "../components/CreateFolderDialog";
 import RectanglePillButton from "../components/RectanglePillButton";
 import UploadPanel from "../components/UploadPanel"
 import FileAPI from "../api/FileAPI";
+import CreateFolderIcon from "../components/icons/CreateFolderIcon";
+import UploadIcon from "../components/icons/UploadIcon";
 
 export default function Main() {
     let [isFileDialogOpened, setIsFileDialogOpened] = React.useState(false)
@@ -56,7 +58,7 @@ export default function Main() {
             setData(transformedData)
             parentIdRef.current = item.id
         } else {
-
+            console.log("file item clicked")
         }
     }
 
@@ -222,11 +224,12 @@ export default function Main() {
         })
       }, [])
   
-    const handleCheckboxToggle = (row, checked) => {
-        setSelectedItems((prevSelected) => {
-            console.log(prevSelected)
-            return checked ? [...prevSelected, row] : prevSelected.filter((cur) => cur.id !== row.id)
-        })
+    const handleRowSelected = (row) => {
+        if (selectedItems.find((item) => item.id === row.id)) {
+            setSelectedItems(selectedItems.filter((cur) => cur.id !== row.id))
+        }  else {
+            setSelectedItems([...selectedItems, row])
+        }
     };
       
     return (
@@ -242,12 +245,13 @@ export default function Main() {
             </div>
             <div className="flex flex-wrap gap-4 py-4">
                 <MainButton 
-                    icon={Upload} 
+                    icon={UploadIcon} 
                     text="Upload or drop" 
                     onClick={() => fileInputRef.current.click()}
+                    selected
                 />
                 <MainButton 
-                    icon={FolderPlus} 
+                    icon={CreateFolderIcon} 
                     text="Create folder" 
                     onClick={() => { setIsFileDialogOpened(true)}}
                 />
@@ -274,7 +278,7 @@ export default function Main() {
                 )}
 
             </div>
-            <DropboxTable data={data} onCheckboxToggle={handleCheckboxToggle} onItemClick={handleItemClick}/>
+            <DropboxTable data={data} onRowSelected={handleRowSelected} onItemClick={handleItemClick}/>
             <UploadPanel show={showPanel} 
             setShowPanel={setShowPanel} 
             setOpenPanel={setOpenPanel} 

@@ -20,7 +20,7 @@
     "@mantine/hooks": "^7.16.0",
     "@tanstack/react-table": "^8.20.6",
     "@tanstack/react-virtual": "^3.13.0",
-    "ag-grid-react": "^33.0.4",
+    "ag-grid-react": "^33.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^16.4.7",

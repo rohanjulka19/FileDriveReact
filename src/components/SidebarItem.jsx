@@ -1,10 +1,14 @@
 function SidebarItem({label, icon}) {
     return (
-        <a className="flex items-center w-full pl-8 py-4 text-gray-700 rounded-md hover:bg-hoverColor hover:rounded-xl" href="#">
-            <span className="w-5 h-5">{icon}</span>
-            <span className="mx-4 font-medium">{label}</span>
+        <a className="w-full pl-3 pr-3 py-1" href="#">
+            <span className="flex items-center pl-3 py-3 text-stone-500 opacity-90 hover:bg-black hover:rounded-lg hover:text-white hover:opacity-100">
+                <span className="">{icon}</span>
+                <span className="mx-3 font-light">{label}</span>
+            </span>
         </a>
+
     )
 }
 
 export default SidebarItem;
+

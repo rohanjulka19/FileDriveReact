@@ -1,12 +1,41 @@
-import { useState } from 'react'
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import MainPage from './pages/MainPage'
+import LoginPage from './pages/LoginPage'
 import './App.css'
+import { useEffect, useState } from 'react';
+import AuthAPI from './api/AuthAPI';
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    AuthAPI.check_session().then((resp) => {
+      if (resp.status == 200) {
+        setIsLoggedIn(true)
+      } else {
+        setIsLoggedIn(false)
+      }
+    })
+  }, [])
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <h1 className="text-4xl font-bold text-blue-500">Hello, Tailwind CSS!</h1>
-    </div>
+    <Router>
+      <Routes>
+        {
+          isLoggedIn ? (
+            <>
+               <Route path="/" element={<MainPage />} />
+               <Route path="*" element={<Navigate to="/" />} />
+            </>
+          ): (
+            <>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="*" element={<Navigate to="/login" />} />
+            </>
+          )
+        }
+      </Routes>
+    </Router>
   )
 }
 

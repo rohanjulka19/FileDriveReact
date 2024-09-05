@@ -11,7 +11,7 @@ const MainButton = ({ icon:Icon, text, selected = false, onClick }) => {
       onMouseEnter={() => setOnHover(true)}
       onMouseLeave={() => setOnHover(false)}
       className={`
-        flex items-center justify-center gap-2 px-4 py-3 rounded-lg
+        flex items-center justify-center gap-2 px-3 py-2 rounded-lg
         transition-all duration-200 min-w-[140px]
         ${selected 
           ? 'bg-black text-white hover:bg-stone-700' 

@@ -5,11 +5,9 @@ import JSZip from "jszip"
 import { saveAs } from 'file-saver';
 
 import SearchBar from "../components/SearchBar"
-import { Upload, ArrowDownToLine, FolderPlus, Trash} from 'lucide-react';
+import { Star, ArrowDownToLine, Clock4, Trash} from 'lucide-react';
 import MainButton from "../components/MainButton";
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community'; 
-import TimeIcon from "../components/icons/TimeIcon";
-import StarIcon from "../components/icons/StarIcon";
 import PillButton from "../components/PillButton";
 import Sidebar from "../components/sidebar";
 import DropboxTable from "../components/FileView";
@@ -42,20 +40,45 @@ export default function Main() {
         return `${size ? size.toFixed(2): 0} ${units[unitType]}`
     }
 
+    const formatDate = (date) => {
+        const parsedDate = new Date(date)
+        const elapsedTime = new Date(Date.now()) - parsedDate
+        
+        const elapsedTimeInSec = elapsedTime / 1000
+        if (elapsedTimeInSec < 60) {
+            return `${Math.floor(elapsedTimeInSec)} seconds ago`
+        }
+
+        const elapsedTimeInMins = elapsedTimeInSec / 60
+        if (elapsedTimeInMins < 60) {
+            return `${Math.floor(elapsedTimeInMins)} minutes ago`
+        }
+
+        const elapsedTimeInHours = elapsedTimeInMins / 60
+        if (elapsedTimeInHours < 24) {
+            return `${Math.floor(elapsedTimeInHours)} hours ago`
+        }
+
+        return parsedDate.toLocaleDateString()
+    }
+
+    const transformDoc = (doc) => {
+        console.log(doc.name)
+        return {
+            id:doc.id,
+            name: doc.name,
+            access: 'Private',
+            size: formatSize(doc.size),
+            modified: formatDate(doc.updated_at),
+            type: doc.is_dir ? "folder": doc.name.split(".").pop()  
+        }
+    }
+
     const handleItemClick = async (item) => {
         if (item.type == "folder") {
             const items = await FileAPI.getItems(item.id)
-            const transformedData = items.map((doc) => {
-                return {
-                  id:doc.id,
-                  name: doc.name,
-                  access: 'Only you',
-                  size: formatSize(doc.size),
-                  modified: '27/3/2016 9:36 am',
-                  type: doc.is_dir ? "folder": "file"
-                }
-            })
-            setData(transformedData)
+            const transformedItems = items.map(transformDoc)
+            setData(transformedItems)
             parentIdRef.current = item.id
         } else {
             console.log("file item clicked")
@@ -65,14 +88,7 @@ export default function Main() {
     const createFolder = (folderName) => {
         FileAPI.createItem(folderName, true, null, parentIdRef.current, 0)
         .then((doc) => {
-            const updatedData = [...data, {
-                id: doc.id,
-                name: doc.name,
-                size: formatSize(doc.size),
-                type: "folder",
-                access: 'Only you',
-                modified: '27/3/2016 9:36 am',
-            }]
+            const updatedData = [...data, transformDoc(doc)]
             setData(updatedData)
         })
     }
@@ -161,14 +177,7 @@ export default function Main() {
                     fileUploadRequest.parent,
                     fileUploadRequest.file.size
                 ).then((doc) => {
-                    const updatedData = [...data, {
-                        id: doc.id,
-                        name: doc.name,
-                        size: formatSize(doc.size),
-                        type: "file",
-                        access: 'Only you',
-                        modified: '27/3/2016 9:36 am',
-                    }]
+                    const updatedData = [...data, transformDoc(doc)]
                     setData(updatedData)
                     updateFileRequestStatus(fileUploadRequest.uploadId, "Completed")
                 })
@@ -210,17 +219,8 @@ export default function Main() {
 
     useEffect(() => {
         FileAPI.getItems().then((docs) => {
-          const transformedData = docs.map((doc) => {
-              return {
-                id:doc.id,
-                name: doc.name,
-                access: 'Only you',
-                size: formatSize(doc.size),
-                modified: '27/3/2016 9:36 am',
-                type: doc.is_dir ? "folder": "file"
-              }
-          })
-          setData(transformedData)
+          const transformedItems = docs.map(transformDoc)
+          setData(transformedItems)
         })
       }, [])
   
@@ -233,13 +233,13 @@ export default function Main() {
     };
       
     return (
-<div className="flex h-screen">
+<div className="flex h-screen bg-[#F5F5F5]">
     <div className="w-2/12">
-        <Sidebar></Sidebar>
+        <Sidebar> </Sidebar>
     </div>
-    <div className="w-10/12 flex flex-col justify-start px-8 pt-4 gap-y-28">
-        <div>
-            <div className="flex flex-row justify-between">
+    <div className="w-10/12 flex flex-col justify-start bg-[#F5F5F5] gap-y-4">
+        <div className="bg-[#F5F5F5]">
+            <div className="flex flex-row justify-between pt-4 text-sm">
                 <SearchBar></SearchBar>
                 <button className="w-8 h-8 rounded-full text-center bg-yellow-500">RJ</button>
             </div>
@@ -257,27 +257,29 @@ export default function Main() {
                 />
                 <input ref={fileInputRef} onChange={handleItemUpload} type="file" hidden></input>
             </div>
-        </div>
-        <div className="flex flex-col gap-y-4">
-            <div className="flex flex-row justify-between items-end ">
-                    <span className="text-2xl font-medium">All files</span>
-                    <button className=" p-2 rounded-xl bg-red-600"> RJ </button>
-            </div>
-            <div className="flex flex-row gap-2">
-                {selectedItems.length > 0 ? (
-                    <>
-                        <RectanglePillButton label="Download" dark={true} onClick={downloadSelectedItems} icon={<ArrowDownToLine width={15} height={15}/>}/>
-                        <RectanglePillButton label="Delete" onClick={deleteSelectedItems} icon={<Trash width={15} height={15}/>}/>
-                        
-                    </>
-                    ): (
-                    <>
-                        <PillButton label="Recents" icon={<TimeIcon width={15} height={15}/>}/>
-                        <PillButton label="Starred" icon={<StarIcon width={15} height={15}/>}/>
-                    </>
-                )}
+            <div className="flex flex-col gap-y-4 h-full">
+                <div className="flex flex-row justify-between items-end ">
+                        <span className="text-2xl font-medium">All files</span>
+                        <button className=" p-2 rounded-xl bg-red-600"> RJ </button>
+                </div>
+                <div className="flex flex-row gap-2">
+                    {selectedItems.length > 0 ? (
+                        <>
+                            <RectanglePillButton label="Download" dark={true} onClick={downloadSelectedItems} icon={<ArrowDownToLine width={15} height={15}/>}/>
+                            <RectanglePillButton label="Delete" onClick={deleteSelectedItems} icon={<Trash width={15} height={15}/>}/>
+                            
+                        </>
+                        ): (
+                        <>
+                            <PillButton label="Recents" icon={<Clock4 width={15} height={15} />}/>
+                            <PillButton label="Starred" icon={<Star width={15} height={15} />}/>
+                        </>
+                    )}
 
+                </div>
             </div>
+        </div>
+        <div className="border border-solid border-white rounded-xl w-full h-full overflow-hidden bg-white">
             <DropboxTable data={data} onRowSelected={handleRowSelected} onItemClick={handleItemClick}/>
             <UploadPanel show={showPanel} 
             setShowPanel={setShowPanel} 

@@ -11,6 +11,20 @@ const AuthAPI = {
             credentials: "include"
         }) 
         return resp
+    },
+    async logout() {
+        const resp = await fetch(`${apiBaseUrl}/files/logout`, {
+            method: "GET",
+            credentials: "include"
+        })
+        return resp
+    },
+    async check_session() {
+        const resp = await fetch(`${apiBaseUrl}/files/check-session`, {
+            method: "GET",
+            credentials: "include"
+        })
+        return resp
     }
 }
 

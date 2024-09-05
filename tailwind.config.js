@@ -8,6 +8,8 @@ module.exports = {
         sidebar: '#F7F5F1',
         hoverColor: '#EBE9E5',
         hoverColor1: '#F7F5F1',
+        hoverColor2: '#D82E5A',
+        textColor: '#060604',
         siebarTextColor: '#736C64',
         dialogButtonHoverColor: '#EFEDE9',
         dialogButtonColor: '#d9d4cc3b',
@@ -22,7 +24,7 @@ module.exports = {
         secondary: '#BBB5AE'
       },
       fontFamily: {
-        text: ['Poppins', 'Arial', 'sans-serif'],
+        text: ['Inter', 'sans-serif'],
       }
     },
   },

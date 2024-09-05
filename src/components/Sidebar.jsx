@@ -1,24 +1,36 @@
+import { useState } from 'react'
 import SidebarItem from './SidebarItem'
 import BoxIcon from './icons/BoxIcon';
-import FilesIcon from './icons/FilesIcon';
 import PhotoIcon from './icons/PhotoIcon';
 import SharedFilesIcon from './icons/SharedFilesIcon';
+import FilesIcon from './icons/FilesIcon';
 import TrashIcon from './icons/TrashIcon';
-import { Files, Image, Share, Trash2 } from 'lucide-react';
 
 function Sidebar() {
+    const sidebarItems = [
+        { label: "All Files", icon: FilesIcon },
+        { label: "Photos", icon: PhotoIcon },
+        { label: "Shared", icon: SharedFilesIcon },
+        { label: "Deleted Files", icon: TrashIcon}
+    ]
+    const [activeIndex, setActiveIndex] = useState(0);
+
     return (
-<div className="flex flex-col items-baseline w-full h-screen  py-8 overflow-y-auto bg-stone-50 border-r rtl:border-r-0 rtl:border-l">
+<div className="flex flex-col items-baseline w-full h-screen  py-8 overflow-y-auto bg-[#F5F5F5] rtl:border-r-0">
     <div className="px-2 text-xl flex justify-start items-center w-full gap-2">
         <div className="w-10 h-10"><BoxIcon/></div>
         <div className="font-medium text-lg">FileDrive</div>
     </div>
-    <div className='bg-gray-200 h-[1px] w-full mt-4'></div>
-    <div className="flex flex-col justify-start items-end flex-1 mt-2 w-full text-md">
-        <SidebarItem label="All Files" icon={<Files />}></SidebarItem>
-        <SidebarItem label="Photos" icon={ <Image/> }></SidebarItem>
-        <SidebarItem label="Shared" icon={<Share />}></SidebarItem>
-        <SidebarItem label="Deleted Files" icon={<Trash2 />}></SidebarItem>
+    <div className="flex flex-col justify-start items-end flex-1 mt-12 w-full text-md">
+    {sidebarItems.map((item, index) => (
+                <SidebarItem 
+                    key={index} 
+                    label={item.label} 
+                    icon={item.icon} 
+                    isActive={activeIndex === index} 
+                    onClick={() => setActiveIndex(index)}
+                />
+            ))}
     </div>
 </div>
     )
